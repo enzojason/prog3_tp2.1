@@ -1,9 +1,26 @@
-class Sensor {}
+class Sensor {
+    constructor(id, type, value, unit, updated_at) {
+    const allowedTypes = ['temperature', 'humidity', 'pressure'];
+        if (!allowedTypes.includes(type)) {
+            throw new Error("Tipo de sensor no permitido");
+        }
+        this.id = id;
+        this.type = type;
+        this.value = value;
+        this.unit = unit;
+        this.updated_at = updated_at;
+    }
+    
+    updateValue(newValue) {
+        this.value = newValue;
+    }
+}
 
 class SensorManager {
     constructor() {
         this.sensors = [];
     }
+
 
     addSensor(sensor) {
         this.sensors.push(sensor);
@@ -33,7 +50,23 @@ class SensorManager {
         }
     }
 
-    async loadSensors(url) {}
+    async loadSensors(url) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch sensors data: ${response.statusText}`);
+            }
+            const data = await response.json();
+            data.forEach(sensorData => {
+                const { id, type, value, unit, updated_at } = sensorData;
+                const sensor = new Sensor(id, type, value, unit, updated_at);
+                this.addSensor(sensor);
+            });
+            this.render();
+        } catch (error) {
+            console.error('Error loading sensors:', error);
+        }
+    }
 
     render() {
         const container = document.getElementById("sensor-container");
